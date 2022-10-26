@@ -1,0 +1,36 @@
+
+/****** identification of cohorts  ******/
+with cohorts as (
+select [user_id], MONTH(MIN(date))  as cohort
+  FROM [dbo].[orders]
+  GROUP BY [user_id]),
+
+
+/****** adding cohorts to the main dataset,
+purchase month for each transaction,
+number of months******/
+main_data as(
+SELECT 
+	o.[user_id], 
+	o.[order_id],
+	MONTH(date) as purchase_month_num,
+	c.[cohort],
+	MONTH(date) - c.[cohort] as month_num
+FROM [dbo].[orders] AS o
+JOIN cohorts AS c ON o.[user_id] = c.[user_id])
+
+
+/****** Retention calculation  ******/
+SELECT cohort,
+COUNT(DISTINCT CASE WHEN month_num = 0 THEN [user_id] END) AS month_0,
+COUNT(DISTINCT CASE WHEN month_num = 1 THEN [user_id] END) AS month_1,
+COUNT(DISTINCT CASE WHEN month_num = 2 THEN [user_id] END) AS month_2,
+COUNT(DISTINCT CASE WHEN month_num = 3 THEN [user_id] END) AS month_3,
+COUNT(DISTINCT CASE WHEN month_num = 4 THEN [user_id] END) AS month_4,
+COUNT(DISTINCT CASE WHEN month_num = 5 THEN [user_id] END) AS month_5,
+COUNT(DISTINCT CASE WHEN month_num = 6 THEN [user_id] END) AS month_6,
+COUNT(DISTINCT CASE WHEN month_num = 7 THEN [user_id] END) AS month7,
+COUNT(DISTINCT CASE WHEN month_num = 8 THEN [user_id] END) AS month_8
+FROM main_data
+GROUP BY cohort
+ORDER BY cohort
